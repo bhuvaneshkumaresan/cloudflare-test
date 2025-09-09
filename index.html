@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudflare Test - POC App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .timestamp {
+            font-family: 'Courier New', monospace;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .cache-test {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #e8f4f8;
+            border-radius: 8px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .status.hit { background: #d4edda; color: #155724; }
+        .status.miss { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Cloudflare Test App</h1>
+        <p>Testing Cloudflare with Azure Static Web Apps</p>
+        
+        <div class="info-box">
+            <strong>Current Time:</strong><br>
+            <span class="timestamp" id="current-time"></span>
+        </div>
+        
+        <div class="cache-test">
+            <h3>Cache Test</h3>
+            <p>Click to test Cloudflare caching behavior:</p>
+            <button onclick="testCache()">Test Cache Headers</button>
+            <button onclick="testAPI()">Test API Response</button>
+            <div id="cache-result"></div>
+        </div>
+        
+        <div class="info-box">
+            <strong>Client Info:</strong><br>
+            <span id="client-info"></span>
+        </div>
+        
+        <div class="info-box">
+            <strong>Page Load Count:</strong>
+            <span id="load-count">1</span>
+        </div>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            document.getElementById('current-time').textContent = new Date().toISOString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Display client info
+        document.getElementById('client-info').innerHTML = `
+            User Agent: ${navigator.userAgent.substring(0, 50)}...<br>
+            Language: ${navigator.language}<br>
+            Screen: ${screen.width}x${screen.height}
+        `;
+
+        // Load counter (using localStorage)
+        let loadCount = parseInt(localStorage.getItem('loadCount') || '0') + 1;
+        localStorage.setItem('loadCount', loadCount);
+        document.getElementById('load-count').textContent = loadCount;
+
+        // Cache testing functions
+        function testCache() {
+            const result = document.getElementById('cache-result');
+            result.innerHTML = `
+                <p><strong>Cache Headers Test:</strong></p>
+                <p>This page was loaded at: ${new Date().toLocaleTimeString()}</p>
+                <p>Refresh to test if Cloudflare caches static content</p>
+                <div class="status hit">Check browser dev tools for CF-Cache-Status header</div>
+            `;
+        }
+
+        function testAPI() {
+            const result = document.getElementById('cache-result');
+            result.innerHTML = '<p>Testing dynamic content...</p>';
+            
+            // Simulate API call with current timestamp
+            setTimeout(() => {
+                result.innerHTML = `
+                    <p><strong>API Response:</strong></p>
+                    <p>Timestamp: ${Date.now()}</p>
+                    <p>Random: ${Math.random()}</p>
+                    <div class="status miss">Dynamic content (should not be cached)</div>
+                `;
+            }, 500);
+        }
+
+        // Test different URL patterns for Cloudflare rules
+        console.log('🔍 Cloudflare Test Points:');
+        console.log('- Static assets: images, CSS, JS (should cache)');
+        console.log('- HTML pages (configurable caching)');
+        console.log('- Dynamic API calls (should not cache)');
+        console.log('- Check Response Headers for CF-* headers');
+    </script>
+</body>
+</html>
